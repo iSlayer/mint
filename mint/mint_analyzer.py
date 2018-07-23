@@ -6,10 +6,6 @@ import numpy as np
 
 # TODO:
 #   Select average timeframe
-#   Smarter way to handle non unique names across root_cats
-#       Expense -> Education -> School
-#       Expense -> kids -> School
-
 
 all_income_categories = []
 all_expense_categories = []
@@ -25,7 +21,7 @@ def stacked_summary(df):
     return df.stack(['Year', 'Month']).fillna(0)
 
 
-def create_category_hiearchy(cats,categoryType):
+def create_category_hiearchy(cats, categoryType):
     dict_out = {}
 
     for key in cats.keys():
@@ -64,9 +60,9 @@ def populate_list_category(dict_in):
     return [x.lower() for x in list_out]
 
 
-def dataframe_from_mint(username,password):
+def dataframe_from_mint(username, password):
     # Connect to mint api and login with credentials
-    mint = mintapi.Mint(username,password)
+    mint = mintapi.Mint(username, password)
 
     # Load all possible categories
     cats = mint.get_categories()
@@ -78,8 +74,8 @@ def dataframe_from_mint(username,password):
     net_worth = mint.get_net_worth()
 
     # Specific columns
-    columns = ['date','description','amount','transaction_type',
-            'category','account_name']
+    columns = ['date', 'description', 'amount', 'transaction_type',
+            'category', 'account_name']
     df = df[columns]
     df['root_cat'] = np.nan
     df['sub_cat'] = np.nan
@@ -117,7 +113,7 @@ def populate_hiearchy(df, dict_hiearchy):
         idx = df['category'].str.match(root.lower())
 
         df.loc[idx, 'root_cat'] = root
-        df.loc[idx, 'sub_cat']  = root
+        df.loc[idx, 'sub_cat'] = root
 
         for cat in cat_list:
             idx = df['category'].str.match(cat.lower())
@@ -129,10 +125,7 @@ def populate_hiearchy(df, dict_hiearchy):
 
 
 def group_dataframe(df):
-    # df2.groupby([(df2.index.year), (df2.index.month), 'transaction_type','root_cat','sub_cat']).sum():
-    # Generate new pandas dataframe to store category sums based on
-    # Category -> Year -> Month
-    # return df.groupby(['Year', 'Month', 'transaction_type', 'root_cat','sub_cat']).sum()
+    # Category -> Year -> Month -> Transaction Type -> Root Cat -> Sub Cat
     return df.groupby([
         (df.index.year.rename('Year')),
         (df.index.month.rename('Month')),
@@ -177,7 +170,7 @@ def include_totals_in_dataframe(df):
 """
 def total_sub_cat(df):
     df = unstacked_summary(df)
-    return df.groupby(level=[0,2]).sum()
+    return df.groupby(level=[0, 2]).sum()
 
 
 """
@@ -187,7 +180,7 @@ def total_sub_cat(df):
 """
 def total_root_cat(df):
     df = unstacked_summary(df)
-    return df.groupby(level=[0,1]).sum()
+    return df.groupby(level=[0, 1]).sum()
 
 
 """
@@ -206,7 +199,7 @@ def total_transaction_types(df):
     summed by: 'Year', 'root_cat'
 """
 def total_year_categories(df):
-    return df.groupby(level=[0,3]).sum()
+    return df.groupby(level=[0, 3]).sum()
 
 
 """
@@ -216,7 +209,7 @@ def total_year_categories(df):
     Unstacked by: 'Year'
 """
 def total_root_by_year(df):
-    return df.groupby(level=[0,3]).sum().unstack(['Year']).fillna(0)
+    return df.groupby(level=[0, 3]).sum().unstack(['Year']).fillna(0)
 
 
 """
@@ -226,14 +219,14 @@ def total_root_by_year(df):
     return: Yearly average
 """
 def average_last_12months(df, last_entry):
-    df = df.groupby(level=[0,1,3]).sum().unstack(level=[0,1]).fillna(0)
+    df = df.groupby(level=[0, 1, 3]).sum().unstack(level=[0, 1]).fillna(0)
 
     # Check if data is on last day of the month
     # so that the current month can be averaged
     if last_entry.is_month_end:
-        return df.iloc[:,-12:].mean(axis=1)
+        return df.iloc[:, -12:].mean(axis=1)
     else:
-        return df.iloc[:,-12-1:-1].mean(axis=1)
+        return df.iloc[:, -12-1:-1].mean(axis=1)
 
 
 def financial_independence(avg, net_worth, withdrawl_rate, return_rate):
@@ -294,13 +287,13 @@ def main(argv):
     return_rate = 5.00
 
     # Use mintapi to import data to dataframe
-    df, cats, net_worth = dataframe_from_mint(username,password)
+    df, cats, net_worth = dataframe_from_mint(username, password)
     last_entry = max(df.index)
 
     # Convert to hiearchy categories
-    income_hiearchy = create_category_hiearchy(cats,'INCOME')
-    expense_hiearchy = create_category_hiearchy(cats,'EXPENSE')
-    ignore_hiearchy = create_category_hiearchy(cats,'NO_CATEGORY')
+    income_hiearchy = create_category_hiearchy(cats, 'INCOME')
+    expense_hiearchy = create_category_hiearchy(cats, 'EXPENSE')
+    ignore_hiearchy = create_category_hiearchy(cats, 'NO_CATEGORY')
 
     # Populate category groups
     all_income_categories = populate_list_category(income_hiearchy)
