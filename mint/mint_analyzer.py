@@ -13,15 +13,17 @@ all_ignore_categories = []
 
 
 def unstacked_summary(df):
+    """A function to unstack the year and month of a grouped dataframe"""
     return df.unstack(['Year', 'Month']).fillna(0)
 
 
 def stacked_summary(df):
-    # return df.stack(['Year', 'Month']).fillna(0)
+    """A function to stack the year and month of a dataframe"""
     return df.stack(['Year', 'Month']).fillna(0)
 
 
 def create_category_hiearchy(cats, categoryType):
+    """A function that creates a dict of the root and subroot categories"""
     dict_out = {}
 
     for key in cats.keys():
@@ -52,6 +54,7 @@ def create_category_hiearchy(cats, categoryType):
 
 
 def populate_list_category(dict_in):
+    """A function that creates a list of the root and subroot categories"""
     list_out = []
     for key, value in dict_in.items():
         list_out.append(key)
@@ -61,6 +64,7 @@ def populate_list_category(dict_in):
 
 
 def dataframe_from_mint(username, password):
+    """A function that signs into mint.com and queries transaction info"""
     # Connect to mint api and login with credentials
     mint = mintapi.Mint(username, password)
 
@@ -87,6 +91,7 @@ def dataframe_from_mint(username, password):
 
 
 def convert_transaction_types(df):
+    """A function that converts transactions into income, expesnse, & ignore"""
     global all_income_categories
     global all_expense_categories
     global all_ignore_categories
@@ -109,6 +114,7 @@ def convert_transaction_types(df):
 
 
 def populate_hiearchy(df, dict_hiearchy):
+    """A function that fills the root & subroot categories in the dataframe"""
     for root, cat_list in dict_hiearchy.items():
         idx = df['category'].str.match(root.lower())
 
@@ -125,6 +131,8 @@ def populate_hiearchy(df, dict_hiearchy):
 
 
 def group_dataframe(df):
+    """A function that groups the dataframe by Year, Month, Transaction Type,
+    Root Category, Subroot Category, and takes the sum of the Amounts"""
     # Category -> Year -> Month -> Transaction Type -> Root Cat -> Sub Cat
     return df.groupby([
         (df.index.year.rename('Year')),
@@ -163,62 +171,38 @@ def include_totals_in_dataframe(df):
     return df_reindex
 
 
-"""
-    Totals by year and parent/root categories.
-    grouped by: 'transaction_type', 'root_cat', 'sub_cat'
-    summed by: 'transaction_type', 'sub_cat'
-"""
 def total_sub_cat(df):
+    """A function that calculates the totals by year and subroot categories."""
     df = unstacked_summary(df)
     return df.groupby(level=[0, 2]).sum()
 
 
-"""
-    Totals by year and parent/root categories.
-    grouped by: 'transaction_type', 'root_cat', 'sub_cat'
-    summed by: 'transaction_type', 'root_cat'
-"""
 def total_root_cat(df):
+    """A function that calculates the totals by transaction and root categories."""
     df = unstacked_summary(df)
     return df.groupby(level=[0, 1]).sum()
 
 
-"""
-    Totals by year and parent/root categories.
-    grouped by: 'transaction_type', 'root_cat', 'sub_cat'
-    summed by: 'transaction_type'
-"""
 def total_transaction_types(df):
+    """A function that calculates the total by transaction type"""
     df = unstacked_summary(df)
     return df.groupby(level=0).sum()
 
 
-"""
-    Totals by year and parent/root categories.
-    grouped by: 'Year', 'Month', 'transaction_type', 'root_cat', 'sub_cat'
-    summed by: 'Year', 'root_cat'
-"""
 def total_year_categories(df):
+    """A function that calculates the total by year and root categories"""
     return df.groupby(level=[0, 3]).sum()
 
 
-"""
-    Totals by year and parent/root categories.
-    grouped by: 'Year', 'Month', 'transaction_type', 'root_cat', 'sub_cat'
-    summed by: 'Year', 'root_cat'
-    Unstacked by: 'Year'
-"""
+
 def total_root_by_year(df):
+    """A function that calculates the total by year & root categories
+    then unstacks the year"""
     return df.groupby(level=[0, 3]).sum().unstack(['Year']).fillna(0)
 
 
-"""
-    grouped by: 'Year', 'Month', 'transaction_type', 'root_cat', 'sub_cat'
-    summed by: 'Year', 'Month', 'root_cat'
-    unstacked by: 'Year', 'Month'
-    return: Yearly average
-"""
 def average_last_12months(df, last_entry):
+    """A function that averages the the previous 12 whole months"""
     df = df.groupby(level=[0, 1, 3]).sum().unstack(level=[0, 1]).fillna(0)
 
     # Check if data is on last day of the month
@@ -230,6 +214,7 @@ def average_last_12months(df, last_entry):
 
 
 def financial_independence(avg, net_worth, withdrawl_rate, return_rate):
+    """A function that calculates financial independence and years to retirement"""
     global all_income_categories
     global all_expense_categories
     global all_ignore_categories
