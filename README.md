@@ -1,5 +1,7 @@
 # mint_analyzer
 
+A personal finance graphing tool for Mint.com data
+
 
 ## Installation
 Ensure you have Python 2 or 3 and pip (`easy_install pip`) and then:
@@ -11,7 +13,6 @@ pip install mint_analyzer # Currently not working
 
 If you do not want to manually find and provide your Mint session cookies, as described below, then please also install `selenium` and `chromedriver`:
 ```shell
-pip install mintapi
 pip install selenium
 brew install chromedriver # or sudo apt-get install chromium-chromedriver on Ubuntu/Debian
 ```
