@@ -194,7 +194,6 @@ def total_year_categories(df):
     return df.groupby(level=[0, 3]).sum()
 
 
-
 def total_root_by_year(df):
     """A function that calculates the total by year & root categories
     then unstacks the year"""
