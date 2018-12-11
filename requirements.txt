@@ -9,7 +9,7 @@ pandas==0.23.4
 pbr==4.2.0
 python-dateutil==2.7.3
 pytz==2018.5
-requests==2.19.1
+requests==2.20.0
 requests-file==1.4.3
 selenium==3.14.1
 selenium-requests==1.3
